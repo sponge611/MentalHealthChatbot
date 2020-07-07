@@ -123,12 +123,7 @@ def response(sentence, userID, show_details=False):
 
 app = Flask(__name__)
 
-
 @app.route('/', methods=['GET'])
-def preset():
-    return "BOT OK", 200
-
-@app.route('/webhook/', methods=['GET'])
 def verify():
     # when the endpoint is registered as a webhook, it must echo back
     # the 'hub.challenge' value it receives in the query arguments
