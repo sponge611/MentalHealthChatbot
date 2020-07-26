@@ -127,6 +127,8 @@ history = []
 def log_history(message, userID):
     if len(history) <= 5:
         history.append((message, userID))
+    elif message.lower() == "good bye":
+        history = []
     else:
        history.pop(0)
        history.append((message, userID))
