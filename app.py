@@ -127,12 +127,11 @@ history = []
 def log_history(message, userID):
     if len(history) <= 5:
         history.append((message, userID))
-    elif message.lower() == "good bye":
-        history.clear()
     else:
        history.pop(0)
        history.append((message, userID))
     
+    print("HISTORY: ")
     print(history)
     
 
@@ -167,11 +166,16 @@ def webhook():
                     sender_id = messaging_event["sender"]["id"]        # the facebook ID of the person sending you the message
                     recipient_id = messaging_event["recipient"]["id"]  # the recipient's ID, which should be your page's facebook ID
                     message_text = messaging_event["message"]["text"]  # the message's text
-
-                    responseai = response(message_text, sender_id)
-                    log_history(message_text, sender_id)
-                    send_message(sender_id, responseai)
-                    log_history(responseai, recipient_id)
+                    
+                    if message_text.lower() == 'good bye':
+                        responseai = response(message_text, sender_id)
+                        send_message(sender_id, responseai)
+                        history.clear()
+                    else:
+                        log_history(message_text, sender_id)
+                        responseai = response(message_text, sender_id)                        
+                        log_history(responseai, recipient_id)
+                        send_message(sender_id, responseai)
 
 
                 if messaging_event.get("delivery"):  # delivery confirmation
