@@ -122,6 +122,18 @@ def response(sentence, userID, show_details=False):
                         return (random.choice(i['responses']))
             results.pop(0)
 
+history = []
+
+def log_history(message, userID):
+    if len(history) <= 5:
+        history.append((message, userID))
+    else:
+       history.pop(0)
+       history.append((message, userID))
+    
+    print(history)
+    
+
 app = Flask(__name__)
 
 @app.route('/', methods=['GET'])
@@ -155,7 +167,9 @@ def webhook():
                     message_text = messaging_event["message"]["text"]  # the message's text
 
                     responseai = response(message_text, sender_id)
+                    log_history(message_text, sender_id)
                     send_message(sender_id, responseai)
+                    log_history(responseai, recipient_id)
 
 
                 if messaging_event.get("delivery"):  # delivery confirmation
