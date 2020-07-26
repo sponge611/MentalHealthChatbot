@@ -14,6 +14,7 @@ import random
 from tensorflow import keras
 from keras.models import load_model
 
+# Test change to see connection with heroku
 
 # import our chat-bot intents file
 import json
