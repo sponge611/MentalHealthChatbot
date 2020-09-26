@@ -8,57 +8,17 @@ from flask import Flask, request
 import numpy as np
 import pickle
 
-from tensorflow.keras.models import load_model
-from tensorflow.keras.preprocessing.sequence import pad_sequences
+from transformers import AutoModelWithLMHead, AutoTokenizer
+import torch
 
-model = load_model('./chatbot_models/model_big.h5')
-enc_model = load_model('./chatbot_models/encoder_big.h5')
-dec_model = load_model('./chatbot_models/decoder_big.h5')
-
-with open('./chatbot_models/tokenizer_big.pickle', 'rb') as handle:
-    tokenizer = pickle.load(handle)
-
-maxlen_questions = 223
-maxlen_answers = 132
-
-def str_to_tokens(sentence: str):
-    words = sentence.lower().split()
-    tokens_list = list()
-    for current_word in words:
-        result = tokenizer.word_index.get(current_word, '')
-        if result != '':
-            tokens_list.append(result)
-    return pad_sequences([tokens_list],
-                         maxlen=maxlen_questions,
-                         padding='post')
+tokenizer = AutoTokenizer.from_pretrained("microsoft/DialoGPT-medium")
+model = AutoModelWithLMHead.from_pretrained("microsoft/DialoGPT-medium")
 
 def response(sentence, userID=None, show_details=False):
-    states_values = enc_model.predict(str_to_tokens(sentence))
-    empty_target_seq = np.zeros((1, 1))
-    empty_target_seq[0, 0] = tokenizer.word_index['sos']
-    stop_condition = False
-    decoded_translation = ''
-    while not stop_condition:
-        dec_outputs, h, c = dec_model.predict([empty_target_seq]
-                                              + states_values)
-        sampled_word_index = np.argmax(dec_outputs[0, -1, :])
-        sampled_word = None
-        for word, index in tokenizer.word_index.items():
-            if sampled_word_index == index:
-                if word != 'eos':
-                    decoded_translation += ' {}'.format(word)
-                sampled_word = word
-
-        if sampled_word == 'eos' \
-                or len(decoded_translation.split()) \
-                > maxlen_answers:
-            stop_condition = True
-
-        empty_target_seq = np.zeros((1, 1))
-        empty_target_seq[0, 0] = sampled_word_index
-        states_values = [h, c]
-
-    return(decoded_translation)
+    new_user_input_ids = tokenizer.encode(sentence + tokenizer.eos_token, return_tensors='pt')
+    bot_input_ids = torch.cat([chat_history_ids, new_user_input_ids], dim=-1) if step > 0 else new_user_input_ids
+    chat_history_ids = model.generate(bot_input_ids, max_length=1000, pad_token_id=tokenizer.eos_token_id)
+    return(tokenizer.decode(chat_history_ids[:, bot_input_ids.shape[-1]:][0], skip_special_tokens=True))
 
 history = []
 
