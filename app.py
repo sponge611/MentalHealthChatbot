@@ -11,8 +11,8 @@ import pickle
 from transformers import AutoModelWithLMHead, AutoTokenizer
 import torch
 
-tokenizer = AutoTokenizer.from_pretrained("microsoft/DialoGPT-medium")
-model = AutoModelWithLMHead.from_pretrained("microsoft/DialoGPT-medium")
+tokenizer = AutoTokenizer.from_pretrained("microsoft/DialoGPT-small")
+model = AutoModelWithLMHead.from_pretrained("microsoft/DialoGPT-small")
 
 def response(sentence, userID=None, show_details=False):
     new_user_input_ids = tokenizer.encode(sentence + tokenizer.eos_token, return_tensors='pt')
